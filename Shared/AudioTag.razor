@@ -1,0 +1,72 @@
+﻿@implements IDisposable
+@inject IJSRuntime _jsRuntime
+<audio controls @attributes="UnmatchedParameters" @ref="audioTag">
+    <source src="@CurrentSource" type="audio/mpeg">
+    Your browser does not support the audio tag.
+</audio>
+
+@code {
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> UnmatchedParameters { get; set; }
+    [Parameter] public string Source { get; set; }
+    [Parameter] public decimal CurrentTime { get; set; }
+    [Parameter] public EventCallback<decimal> CurrentTimeChanged { get; set; }
+    [Parameter] public EventCallback<bool> StatusChanged { get; set; }
+
+    public bool IsPaused { get; private set; } = true;
+
+    private string CurrentSource = string.Empty;
+    private ElementReference audioTag { get; set; }
+    IDisposable thisReference;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            thisReference = DotNetObjectReference.Create(this);
+            await _jsRuntime.InvokeAsync<object>("audioTag.init", new object[] { audioTag, thisReference });
+        }
+    }
+
+    [JSInvokable]
+    public async Task NotifyChange(decimal currentTime)
+    {
+        Console.WriteLine(CurrentSource);
+        Console.WriteLine(currentTime);
+        CurrentTime = currentTime;
+        await CurrentTimeChanged.InvokeAsync(CurrentTime);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        base.OnParametersSet();
+        if (CurrentSource != Source)
+        {
+            CurrentSource = Source;
+            await _jsRuntime.InvokeAsync<object>("audioTag.load", audioTag);
+        }
+    }
+
+    protected ValueTask Play() => _jsRuntime.InvokeVoidAsync("audioTag.play", audioTag);
+    protected ValueTask Pause() => _jsRuntime.InvokeVoidAsync("audioTag.pause", audioTag);
+
+    [JSInvokable]
+    public void PausedChange(bool isPaused)
+    {
+        if (isPaused != IsPaused)
+        {
+            IsPaused = isPaused;
+            if (IsPaused)
+                Console.WriteLine("Paused");
+            else
+                Console.WriteLine("Playing");
+            if (StatusChanged.HasDelegate)
+                StatusChanged.InvokeAsync(isPaused);
+        }
+    }
+
+    void IDisposable.Dispose()
+    {
+        _jsRuntime.InvokeVoidAsync("audioTag.dispose", audioTag);
+        thisReference?.Dispose();
+    }
+}

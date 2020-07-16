@@ -4,9 +4,13 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>BlazorOnGitHubPages</title>
+    <title>All With One Accord</title>
     <base href="/" />
-    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdn.rtlcss.com/bootstrap/v4.2.1/css/bootstrap.min.css"
+          integrity="sha384-vus3nQHTD+5mpDiZ4rkEPlnkcyTP+49BhJ4wJeJunw06ZAp+wzzeBPUXr42fi8If"
+          crossorigin="anonymous">
     <link href="css/app.css" rel="stylesheet" />
 
     <!-- Start Single Page Apps for GitHub Pages -->
@@ -43,7 +47,14 @@
 </head>
 
 <body>
-    <app>Loading...</app>
+    <app style="direction: rtl;">
+
+        <div class="bg-white border box-shadow container rounded">
+            <main role="main" class="py-2 text-center">
+                <h1>جاري التحميل ...</h1>
+            </main>
+        </div>
+    </app>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
@@ -51,7 +62,17 @@
         <a class="dismiss">🗙</a>
     </div>
     <script src="decode.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://cdn.rtlcss.com/bootstrap/v4.2.1/js/bootstrap.min.js"
+            integrity="sha384-a9xOd0rz8w0J8zqj1qJic7GPFfyMfoiuDjC9rqXlVOcGO/dmRqzMn34gZYDTel8k"
+            crossorigin="anonymous"></script>
+
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+
+    <script src="https://cdn.plyr.io/3.5.10/plyr.js"></script>
+    <script src="js/audiotag.js"></script>
+
     <script>
         Blazor.start({
             loadBootResource: function (type, name, defaultUri, integrity) {
