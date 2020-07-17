@@ -1,95 +1,83 @@
-﻿@page "/BibleChapter"
-@page "/BibleChapter/{CurrentBook:int}"
-@page "/BibleChapter/{CurrentBook:int}/{CurrentChapter:int}"
+﻿@page "/BibleChapter/{CurrentBook}/{CurrentChapter:int}"
 
 @inject HttpClient Http
 
-@if (chapters == null)
+<div class="alert alert-secondary mb-0">
+    <form class="form-inline" style="text-align: justify;font-size: @($"{27}px");">
+        <span>
+            حجم الخط
+            <span class="badge badge-secondary">@(FontSize)</span>
+        </span>
+        <input class="flex-grow-1 mx-2" type="range" min="20" value="24" max="50" @onchange="ChangeFontSize" />
+    </form>
+</div>
+
+@if (chapter == null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Loading...</em></p> 
 }
 else
 {
-    @for (int i = 0; i < chapters.Length; i++)
+    @if (audioFile != null)
     {
-        var index = i;
-        var bookChapters = chapters[i];
-        <div class="btn m-2 btn-primary @(SelectedChapter != i ? "" : "disabled")" @onclick="@(() => SelectedChapter = index)">
-            @bookChapters.Number
+        <div class="py-2">
+            <AudioTag @ref="AudioFile" style="width:100%" CurrentTimeChanged="TimeChanged"
+                      Source="@(audioFile.ChapterPath)" />
         </div>
     }
-}
-
-@if (SelectedChapter == -1 || chapters == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    Console.WriteLine(chapters.Length);
-    <div class="alert alert-info">
-        <form class="form-inline" style="text-align: justify;font-size: @($"{FontSize}px");">
-            <span>
-                حجم الخط
-                <span class="badge badge-secondary">@(FontSize)</span>
-            </span>
-            <input class="flex-grow-1 mx-2" type="range" min="20" value="24" max="50" @onchange="ChangeFontSize" />
-        </form>
-    </div>
     <div style="text-align: justify;font-size: @($"{FontSize}px");">
-        @for (int i = 0; i < chapters[SelectedChapter].Verses.Length; i++)
+        <p class="text-center @(-1 == SelectedVerse ? "alert-link bg-dark mx-1 p-1 text-light" : "")">
+            @chapter.ChapterName من @chapter.BookName 
+        </p>
+        @for (int i = 0; i < chapter.Verses.Length; i++)
         {
             var index = i;
-            var verse = chapters[SelectedChapter].Verses[i];
+            var verse = chapter.Verses[i];
             <span class="@(i == SelectedVerse ? "alert-link bg-dark mx-1 p-1 text-light" : "")">
                 <span class="badge badge-secondary">@(i + 1)</span>
                 <span>@verse.Text</span>
             </span>
         }
     </div>
-    <div>
-        @if (audioFile != null)
-        {
-            <AudioTag @ref="AudioFile" style="width:100%" CurrentTimeChanged="TimeChanged"
-                      Source="@(audioFile.ChapterPath)" />
-        }
-    </div>
-
 }
 
 @code {
-    [Parameter] public int? CurrentBook { get; set; }
+    [Parameter] public string CurrentBook { get; set; }
     [Parameter] public int? CurrentChapter { get; set; }
 
     public int SelectedVerse { get; set; } = -1;
     public AudioTag AudioFile { get; set; }
-    public Models.ChapterAudio audioFile => chapters[SelectedChapter]?.Audios?.FirstOrDefault();
+    public Models.ChapterAudio audioFile => chapter?.Audios?.FirstOrDefault();
+
+    private Models.BookChapter chapter;
+    protected override async Task OnParametersSetAsync()
+    {
+        chapter = await Http.GetFromJsonAsync<Models.BookChapter>($"Bible/{CurrentBook}/{CurrentChapter}.json");
+        await base.OnParametersSetAsync();
+    }
+
     protected void TimeChanged(decimal currentTime)
     {
+        SelectedVerse = -1;
+        if (audioFile.StartsAt >= currentTime)
+        {
+            AudioFile.CurrentTime = audioFile.StartsAt;
+            return;
+        }
+        else if (audioFile.EndsAt <= currentTime)
+        {
+            AudioFile.Pause();
+            return;
+        }
         var list = audioFile.ChapterSplitting.Split(',');
         for (int i = 0; i < list.Length; i++)
         {
             if (Convert.ToDecimal(list[i]) >= currentTime)
             {
-                if (SelectedVerse != (i - 1))
-                {
-                    SelectedVerse = i - 1;
-                    Console.WriteLine($"Selected Verse : {SelectedVerse}");
-                }
+                SelectedVerse = i - 1;
                 break;
             }
         }
-    }
-
-    public int SelectedChapter { get; set; } = -1;
-    private Models.BookChapter[] chapters;
-    protected override async Task OnParametersSetAsync()
-    {
-        SelectedChapter = -1;
-        var book = await Http.GetFromJsonAsync<Models.BibleBook>($"Bible/{CurrentBook}.json");
-        chapters = book.BookChapters;
-        SelectedChapter = 0;
-        await base.OnParametersSetAsync();
     }
 
     public int FontSize { get; set; } = 27;

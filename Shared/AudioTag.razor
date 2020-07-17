@@ -14,6 +14,7 @@
 
     public bool IsPaused { get; private set; } = true;
 
+    public decimal PlayingTime { get; set; }
     private string CurrentSource = string.Empty;
     private ElementReference audioTag { get; set; }
     IDisposable thisReference;
@@ -30,9 +31,8 @@
     [JSInvokable]
     public async Task NotifyChange(decimal currentTime)
     {
-        Console.WriteLine(CurrentSource);
-        Console.WriteLine(currentTime);
         CurrentTime = currentTime;
+        PlayingTime = currentTime;
         await CurrentTimeChanged.InvokeAsync(CurrentTime);
     }
 
@@ -44,10 +44,15 @@
             CurrentSource = Source;
             await _jsRuntime.InvokeAsync<object>("audioTag.load", audioTag);
         }
+        if (PlayingTime != CurrentTime)
+        {
+            PlayingTime = CurrentTime;
+            await _jsRuntime.InvokeVoidAsync("audioTag.seekto" , CurrentTime, audioTag);
+        }
     }
 
-    protected ValueTask Play() => _jsRuntime.InvokeVoidAsync("audioTag.play", audioTag);
-    protected ValueTask Pause() => _jsRuntime.InvokeVoidAsync("audioTag.pause", audioTag);
+    public ValueTask Play() => _jsRuntime.InvokeVoidAsync("audioTag.play", audioTag);
+    public ValueTask Pause() => _jsRuntime.InvokeVoidAsync("audioTag.pause", audioTag);
 
     [JSInvokable]
     public void PausedChange(bool isPaused)
@@ -55,10 +60,10 @@
         if (isPaused != IsPaused)
         {
             IsPaused = isPaused;
-            if (IsPaused)
-                Console.WriteLine("Paused");
-            else
-                Console.WriteLine("Playing");
+            //if (IsPaused)
+            //    Console.WriteLine("Paused");
+            //else
+            //    Console.WriteLine("Playing");
             if (StatusChanged.HasDelegate)
                 StatusChanged.InvokeAsync(isPaused);
         }

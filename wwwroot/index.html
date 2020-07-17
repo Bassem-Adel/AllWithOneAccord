@@ -12,6 +12,7 @@
           href="https://cdn.rtlcss.com/bootstrap/v4.2.1/css/bootstrap.min.css"
           integrity="sha384-vus3nQHTD+5mpDiZ4rkEPlnkcyTP+49BhJ4wJeJunw06ZAp+wzzeBPUXr42fi8If"
           crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.5.10/plyr.css" />
     <link href="css/app.css" rel="stylesheet" />
 
     <!-- Start Single Page Apps for GitHub Pages -->
@@ -49,10 +50,11 @@
 
 <body>
     <app style="direction: rtl;">
-
-        <div class="bg-white border box-shadow container rounded">
+        <div class="border box-shadow container rounded" style="background-color: rgba(255, 255, 255, 0.6);" id="preloader">
             <main role="main" class="py-2 text-center">
-                <h1>جاري التحميل ...</h1>
+                <div class="preloader pulse text-center">
+                    <h1 style="margin: 0;">جاري التحميل ...</h1>
+                </div>
             </main>
         </div>
     </app>
