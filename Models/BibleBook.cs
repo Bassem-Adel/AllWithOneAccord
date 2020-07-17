@@ -15,9 +15,8 @@ namespace AllWithOneAccord.Models
     public class BookChapter
     {
         public long Number { get; set; }
-
-        public string ChapterIntro { get; set; }
-        public string ChapterTailing { get; set; }
+        public string BookName { get; set; }
+        public string ChapterName { get; set; }
 
         public ChapterAudio[] Audios { get; set; }
         
@@ -33,6 +32,8 @@ namespace AllWithOneAccord.Models
         public string ChapterPath { get; set; }
 
         public string ChapterSplitting { get; set; }
+        public decimal StartsAt { get; set; }
+        public decimal EndsAt { get; set; }
     }
 
     public class Verse

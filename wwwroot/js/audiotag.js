@@ -2,7 +2,6 @@
     window.audioTag = {
         init: function init(elem, componentInstance) {
             elem.load();
-            
             elem.addEventListener('timeupdate', function handleTimeChange(event) {
                 if (elem) {
                     componentInstance.invokeMethodAsync('NotifyChange', elem.currentTime).then(null, function (err) {
@@ -25,6 +24,10 @@
             });
         },
 
+        seekto: function seekto(time ,elem) {
+            if (!isNaN(elem.duration))
+                elem.currentTime = time;
+        },
         load: function load(elem) {
             if (!isNaN(elem.duration))
                 elem.load();
@@ -36,7 +39,7 @@
             elem.pause();
         },
         dispose: function dispose(elem) {
-            //elem.player.destroy();
+            elem.player.destroy();
         },
     };
 })();
