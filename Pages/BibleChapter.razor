@@ -1,50 +1,55 @@
 ﻿@page "/BibleChapter/{CurrentBook}/{CurrentChapter:int}"
-
 @inject HttpClient Http
 
-<div class="alert alert-secondary mb-0">
-    <form class="form-inline" style="text-align: justify;font-size: @($"{27}px");">
-        <span>
-            حجم الخط
-            <span class="badge badge-secondary">@(FontSize)</span>
-        </span>
-        <input class="flex-grow-1 mx-2" type="range" min="20" value="24" max="50" @onchange="ChangeFontSize" />
-    </form>
+<div class="alert alert-secondary align-items-center d-flex justify-content-between mb-0">
+    <div>
+        <div class="btn btn-light" @onclick="() => ChangeFontSize(-2)"><b style="font-size: small"> خط اصغر </b></div>
+    </div>
+    <div>
+        @if (ShowFormation)
+        {
+            <div class="btn btn-light" @onclick="() => ShowFormation = false"><b style="font-size: initial"> حذف التشكيل </b></div>
+        }
+        else
+        {
+            <div class="btn btn-dark" @onclick="() => ShowFormation = true"><b style="font-size: initial"> إظهار التَشْكِيلٌ </b></div>
+        }
+    </div>
+    <div>
+        <div class="btn btn-light" @onclick="() => ChangeFontSize(2)"><b style="font-size: large"> خط اكبر </b></div>
+    </div>
 </div>
 
 @if (chapter == null)
 {
-    <p><em>Loading...</em></p> 
-}
-else
+<p><em>Loading...</em></p> }
+            else
+            {
+@if (audioFile != null)
 {
-    @if (audioFile != null)
-    {
-        <div class="py-2">
-            <AudioTag @ref="AudioFile" style="width:100%" CurrentTimeChanged="TimeChanged"
-                      Source="@(audioFile.ChapterPath)" />
-        </div>
-    }
-    <div style="text-align: justify;font-size: @($"{FontSize}px");">
-        <p class="text-center @(-1 == SelectedVerse ? "alert-link bg-dark mx-1 p-1 text-light" : "")">
-            @chapter.ChapterName من @chapter.BookName 
-        </p>
-        @for (int i = 0; i < chapter.Verses.Length; i++)
-        {
-            var index = i;
-            var verse = chapter.Verses[i];
-            <span class="@(i == SelectedVerse ? "alert-link bg-dark mx-1 p-1 text-light" : "")">
-                <span class="badge badge-secondary">@(i + 1)</span>
-                <span>@verse.Text</span>
-            </span>
-        }
-    </div>
-}
+<div class="py-2">
+    <AudioTag @ref="AudioFile" style="width:100%" CurrentTimeChanged="TimeChanged"
+              Source="@(audioFile.ChapterPath)" />
+</div>}
+                <div style="text-align: justify;font-size: @($"{FontSize}px");">
+                    <p class="text-center @(-1 == SelectedVerse ? "alert-link bg-dark mx-1 p-1 text-light" : "")">
+                        @chapter.ChapterName من @chapter.BookName
+                    </p>
+                    @for (int i = 0; i < chapter.Verses.Length; i++)
+                    {
+                        var index = i;
+                        var verse = chapter.Verses[i];
+    <span class="@(i == SelectedVerse ? "alert-link bg-dark mx-1 p-1 text-light" : "")">
+        <span class="badge badge-secondary">@(i + 1)</span>
+        <span>@(ShowFormation ? verse.Text : RemoveTshkela(verse.Text))</span>
+    </span>}
+                </div>}
 
 @code {
     [Parameter] public string CurrentBook { get; set; }
     [Parameter] public int? CurrentChapter { get; set; }
 
+    public bool ShowFormation { get; set; } = true;
     public int SelectedVerse { get; set; } = -1;
     public AudioTag AudioFile { get; set; }
     public Models.ChapterAudio audioFile => chapter?.Audios?.FirstOrDefault();
@@ -80,9 +85,25 @@ else
         }
     }
 
-    public int FontSize { get; set; } = 27;
-    protected void ChangeFontSize(ChangeEventArgs e)
+    public int FontSize { get; set; } = 26;
+    protected void ChangeFontSize(int value)
     {
-        FontSize = Convert.ToInt32(e.Value);
+        if(FontSize != 50 && value > 0)
+            FontSize += value;
+        if(FontSize != 20 && value < 0)
+            FontSize += value;
+    }
+    private static string RemoveTshkela(string s)
+    {
+        s = s.Replace("ْ", ""); //   ْ
+        s = s.Replace("َ", ""); //   َ
+        s = s.Replace("ِ", ""); //   ِ
+        s = s.Replace("ّ", ""); //   ّ
+        s = s.Replace("ُ", ""); //   ُ
+        s = s.Replace("ً", ""); //   ً
+        s = s.Replace("ٍ", ""); //  ٍ
+        s = s.Replace("ّ", ""); // ~
+        s = s.Replace("ٌ", ""); //  ٌ
+        return s;
     }
 }
