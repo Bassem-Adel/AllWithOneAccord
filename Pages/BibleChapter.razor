@@ -2,17 +2,32 @@
 @inject HttpClient Http
 
 <div class="alert alert-secondary align-items-center d-flex justify-content-between mb-0">
+    @*<div>
+        <b class="btn btn-light" @onclick="() => ChangeFontSize(-2)">-</b>
+        <b class="px-2"> حجم الخط </b>
+        <b class="btn btn-light" @onclick="() => ChangeFontSize(+2)">+</b>
+    </div>*@
     <div>
         <div class="btn btn-light" @onclick="() => ChangeFontSize(-2)"><b style="font-size: small"> خط اصغر </b></div>
     </div>
     <div>
-        @if (ShowFormation)
+        @if (LightSelectionMode)
         {
-            <div class="btn btn-light" @onclick="() => ShowFormation = false"><b style="font-size: initial"> حذف التشكيل </b></div>
+            <div class="btn btn-dark" @onclick="() => LightSelectionMode = false"><b style="font-size: initial"> DS </b></div>
         }
         else
         {
-            <div class="btn btn-dark" @onclick="() => ShowFormation = true"><b style="font-size: initial"> إظهار التَشْكِيلٌ </b></div>
+            <div class="btn btn-secondary" @onclick="() => LightSelectionMode = true"><b style="font-size: initial"> LS </b></div>
+        }
+    </div>
+    <div>
+        @if (ShowTshkela)
+        {
+            <div class="btn btn-light" @onclick="() => ShowTshkela = false"><b style="font-size: initial"> حذف التشكيل </b></div>
+        }
+        else
+        {
+            <div class="btn btn-dark" @onclick="() => ShowTshkela = true"><b style="font-size: initial"> إظهار التَشْكِيلٌ </b></div>
         }
     </div>
     <div>
@@ -22,34 +37,41 @@
 
 @if (chapter == null)
 {
-<p><em>Loading...</em></p> }
-            else
-            {
-@if (audioFile != null)
+    <p><em>Loading...</em></p> 
+}
+else
 {
-<div class="py-2">
-    <AudioTag @ref="AudioFile" style="width:100%" CurrentTimeChanged="TimeChanged"
-              Source="@(audioFile.ChapterPath)" />
-</div>}
-                <div style="text-align: justify;font-size: @($"{FontSize}px");">
-                    <p class="text-center @(-1 == SelectedVerse ? "alert-link bg-dark mx-1 p-1 text-light" : "")">
-                        @chapter.ChapterName من @chapter.BookName
-                    </p>
-                    @for (int i = 0; i < chapter.Verses.Length; i++)
-                    {
-                        var index = i;
-                        var verse = chapter.Verses[i];
-    <span class="@(i == SelectedVerse ? "alert-link bg-dark mx-1 p-1 text-light" : "")">
-        <span class="badge badge-secondary">@(i + 1)</span>
-        <span>@(ShowFormation ? verse.Text : RemoveTshkela(verse.Text))</span>
-    </span>}
-                </div>}
-
+    @if (audioFile != null)
+    {
+        <div class="py-2">
+            <AudioTag @ref="AudioFile" style="width:100%" CurrentTimeChanged="TimeChanged"
+                      Source="@(audioFile.ChapterPath)" />
+        </div>
+    }
+    <div style="text-align: justify;font-size: @($"{FontSize}px");">
+        <p class="text-center @(-1 == SelectedVerse ? SelectedVerseClasses : "")">
+            @chapter.ChapterName من @chapter.BookName
+        </p>
+        @for (int i = 0; i < chapter.Verses.Length; i++)
+        {
+            var index = i;
+            var verse = chapter.Verses[i];
+            <span class="pr-1">
+                <span class="pl-1 @(i == SelectedVerse ? SelectedVerseClasses : "")">
+                    <span class="badge badge-secondary">@(i + 1)</span>
+                    <span>@(ShowTshkela ? verse.Text.Trim() : RemoveTshkela(verse.Text.Trim()))</span>
+                </span>
+            </span>
+        }
+    </div>
+}
 @code {
     [Parameter] public string CurrentBook { get; set; }
     [Parameter] public int? CurrentChapter { get; set; }
 
-    public bool ShowFormation { get; set; } = true;
+    public string SelectedVerseClasses => !LightSelectionMode ? "alert-link bg-dark py-1 text-light" : "alert alert-link alert-secondary p-0";
+    public bool LightSelectionMode { get; set; } = true;
+    public bool ShowTshkela { get; set; } = true;
     public int SelectedVerse { get; set; } = -1;
     public AudioTag AudioFile { get; set; }
     public Models.ChapterAudio audioFile => chapter?.Audios?.FirstOrDefault();
@@ -72,6 +94,7 @@
         else if (audioFile.EndsAt <= currentTime)
         {
             AudioFile.Pause();
+            AudioFile.CurrentTime = audioFile.StartsAt;
             return;
         }
         var list = audioFile.ChapterSplitting.Split(',');
@@ -88,9 +111,9 @@
     public int FontSize { get; set; } = 26;
     protected void ChangeFontSize(int value)
     {
-        if(FontSize != 50 && value > 0)
+        if (FontSize != 50 && value > 0)
             FontSize += value;
-        if(FontSize != 20 && value < 0)
+        if (FontSize != 20 && value < 0)
             FontSize += value;
     }
     private static string RemoveTshkela(string s)
