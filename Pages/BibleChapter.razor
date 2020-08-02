@@ -1,53 +1,12 @@
 ﻿@page "/BibleChapter/{CurrentBook}/{CurrentChapter:int}"
 @inject HttpClient Http
 
-<div class="alert alert-secondary align-items-center d-flex justify-content-between mb-0">
-    @*<div>
-        <b class="btn btn-light" @onclick="() => ChangeFontSize(-2)">-</b>
-        <b class="px-2"> حجم الخط </b>
-        <b class="btn btn-light" @onclick="() => ChangeFontSize(+2)">+</b>
-    </div>*@
-    <div>
-        <div class="btn btn-light" @onclick="() => ChangeFontSize(-2)"><b style="font-size: small"> خط اصغر </b></div>
-    </div>
-    <div>
-        @if (LightSelectionMode)
-        {
-            <div class="btn btn-dark" @onclick="() => LightSelectionMode = false"><b style="font-size: initial"> DS </b></div>
-        }
-        else
-        {
-            <div class="btn btn-secondary" @onclick="() => LightSelectionMode = true"><b style="font-size: initial"> LS </b></div>
-        }
-    </div>
-    <div>
-        @if (ShowTshkela)
-        {
-            <div class="btn btn-light" @onclick="() => ShowTshkela = false"><b style="font-size: initial"> حذف التشكيل </b></div>
-        }
-        else
-        {
-            <div class="btn btn-dark" @onclick="() => ShowTshkela = true"><b style="font-size: initial"> إظهار التَشْكِيلٌ </b></div>
-        }
-    </div>
-    <div>
-        <div class="btn btn-light" @onclick="() => ChangeFontSize(2)"><b style="font-size: large"> خط اكبر </b></div>
-    </div>
-</div>
-
 @if (chapter == null)
 {
     <p><em>Loading...</em></p> 
 }
 else
 {
-    @if (audioFile != null)
-    {
-        <div class="py-2">
-            <AudioTag @ref="AudioFile" style="width:100%" CurrentTimeChanged="TimeChanged"
-                      Source="@(audioFile.ChapterPath)" />
-        </div>
-    }
     <div style="text-align: justify;font-size: @($"{FontSize}px");">
         <p class="text-center @(-1 == SelectedVerse ? SelectedVerseClasses : "")">
             @chapter.ChapterName من @chapter.BookName
@@ -58,13 +17,86 @@ else
             var verse = chapter.Verses[i];
             <span class="pr-1">
                 <span class="pl-1 @(i == SelectedVerse ? SelectedVerseClasses : "")">
-                    <span class="badge badge-secondary">@(i + 1)</span>
-                    <span>@(ShowTshkela ? verse.Text.Trim() : RemoveTshkela(verse.Text.Trim()))</span>
+                    <span class="badge badge-secondary">@Extensions.ArabicFormat.ArabicNumber(i + 1)</span>
+                    <span>@(ShowTshkela ? verse.Text.Trim() : Extensions.ArabicFormat.RemoveTshkela(verse.Text.Trim()))</span>
                 </span>
             </span>
         }
     </div>
+    <!-- Sound And Settings-->
+    <div class="bg-white border-top box-shadow d-flex fixed-bottom">
+        <div class="btn btn-light" aria-source="https://tablericons.com/"  data-toggle="modal" data-target="#settingModal">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-settings" width="44" height="44" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" />
+                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <circle cx="12" cy="12" r="3" />
+            </svg>
+        </div>
+        <div class="align-self-center flex-grow-1">
+            @if (audioFile != null)
+            {
+                <AudioTag @ref="AudioFile" style="width:100%" CurrentTimeChanged="TimeChanged"
+                          Source="@(audioFile.ChapterPath)" />                
+            }
+        </div>
+    </div>
 }
+
+<!-- Setting Modal -->
+<div class="modal fade" id="settingModal" tabindex="-1" role="dialog" aria-labelledby="settingModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="settingModalLabel">الإعدادات</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="justify-content-between row mx-0 align-items-center py-1">
+                    <b>
+                        حجم الخط
+                    </b>
+                    <div>
+                        <b class="btn btn-light" @onclick="() => ChangeFontSize(-2)">-</b>
+                        <b class="px-2"> @FontSize </b>
+                        <b class="btn btn-light" @onclick="() => ChangeFontSize(+2)">+</b>
+                    </div>
+                </div>
+                <div class="justify-content-between row mx-0 align-items-center py-1">
+                    <b>
+                        نظام التحديد
+                    </b>
+                    @if (LightSelectionMode)
+                    {
+                        <div class="btn btn-dark" @onclick="() => LightSelectionMode = false"><b> غامق </b></div>
+                    }
+                    else
+                    {
+                        <div class="btn btn-secondary" @onclick="() => LightSelectionMode = true"><b> فاتح </b></div>
+                    }
+                </div>
+                <div class="justify-content-between row mx-0 align-items-center py-1">
+                    <b>
+                        التَشْكِيلٌ
+                    </b>
+                    @if (ShowTshkela)
+                    {
+                        <div class="btn btn-light" @onclick="() => ShowTshkela = false"><b> حذف </b></div> 
+                    }
+                    else
+                    {
+                        <div class="btn btn-dark" @onclick="() => ShowTshkela = true"><b> إظهار </b></div>
+                    }
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">موافق</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code {
     [Parameter] public string CurrentBook { get; set; }
     [Parameter] public int? CurrentChapter { get; set; }
@@ -115,18 +147,5 @@ else
             FontSize += value;
         if (FontSize != 20 && value < 0)
             FontSize += value;
-    }
-    private static string RemoveTshkela(string s)
-    {
-        s = s.Replace("ْ", ""); //   ْ
-        s = s.Replace("َ", ""); //   َ
-        s = s.Replace("ِ", ""); //   ِ
-        s = s.Replace("ّ", ""); //   ّ
-        s = s.Replace("ُ", ""); //   ُ
-        s = s.Replace("ً", ""); //   ً
-        s = s.Replace("ٍ", ""); //  ٍ
-        s = s.Replace("ّ", ""); // ~
-        s = s.Replace("ٌ", ""); //  ٌ
-        return s;
     }
 }
